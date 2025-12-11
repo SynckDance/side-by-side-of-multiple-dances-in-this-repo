@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GMR Side-by-Side Comparison | Global Movement Research</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0a0a0b;
+            --bg-secondary: #141416;
+            --bg-tertiary: #1a1a1d;
+            --text-primary: #e8e6e3;
+            --text-secondary: #9a9a9a;
+            --accent-gold: #c9a227;
+            --accent-blue: #4a90a4;
+            --accent-green: #2d8a4e;
+            --accent-red: #a63d40;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Source Sans 3', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--bg-tertiary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left h1 {
+            font-family: 'Cormorant Garamond', serif;
+            font-weight: 400;
+            font-size: 1.75rem;
+            letter-spacing: 0.05em;
+        }
+
+        .header-left h1 span {
+            color: var(--accent-gold);
+        }
+
+        .header-left .subtitle {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        .framework-badge {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--accent-gold);
+            padding: 0.4rem 0.8rem;
+            font-size: 0.7rem;
+            color: var(--accent-gold);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        /* Main Grid */
+        main {
+            flex: 1;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .comparison-grid {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 1rem;
+            min-height: 0;
+        }
+
+        /* Individual Dance Panel */
+        .dance-panel {
+            background: var(--bg-secondary);
+            border: 1px solid var(--bg-tertiary);
+            border-radius: 4px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .dance-panel.highlight {
+            border-color: var(--accent-gold);
+        }
+
+        .panel-header {
+            padding: 0.75rem 1rem;
+            background: var(--bg-tertiary);
+            border-bottom: 1px solid var(--bg-primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1rem;
+            font-weight: 400;
+        }
+
+        .panel-tradition {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+
+        .panel-region {
+            font-size: 0.65rem;
+            color: var(--accent-gold);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .panel-canvas-container {
+            flex: 1;
+            position: relative;
+            min-height: 0;
+        }
+
+        .panel-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .panel-overlay {
+            position: absolute;
+            bottom: 0.5rem;
+            left: 0.5rem;
+            right: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            pointer-events: none;
+        }
+
+        .panel-frame {
+            font-family: monospace;
+            color: var(--accent-gold);
+        }
+
+        .panel-performer {
+            opacity: 0.7;
+        }
+
+        /* Loading state */
+        .panel-loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+        }
+
+        .panel-loading .spinner {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--bg-tertiary);
+            border-top-color: var(--accent-gold);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 0.5rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Controls Bar */
+        .controls-bar {
+            background: var(--bg-secondary);
+            border: 1px solid var(--bg-tertiary);
+            border-radius: 4px;
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .playback-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .playback-controls button {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--bg-primary);
+            color: var(--text-primary);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            transition: all 0.2s;
+        }
+
+        .playback-controls button:hover {
+            border-color: var(--accent-gold);
+            color: var(--accent-gold);
+        }
+
+        .timeline-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .timeline {
+            flex: 1;
+            height: 8px;
+            background: var(--bg-primary);
+            border-radius: 4px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .timeline-progress {
+            height: 100%;
+            background: var(--accent-gold);
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.1s;
+        }
+
+        .time-display {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            min-width: 90px;
+            font-family: monospace;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .control-group label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .control-group select {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--bg-primary);
+            color: var(--text-primary);
+            padding: 0.4rem 0.6rem;
+            font-size: 0.8rem;
+            border-radius: 2px;
+            cursor: pointer;
+        }
+
+        /* Style selector buttons */
+        .style-buttons {
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .style-buttons button {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--bg-primary);
+            color: var(--text-secondary);
+            padding: 0.4rem 0.75rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .style-buttons button:hover,
+        .style-buttons button.active {
+            border-color: var(--accent-gold);
+            color: var(--accent-gold);
+        }
+
+        /* Footer */
+        footer {
+            padding: 1rem 2rem;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--bg-tertiary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .ownership {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .ownership .author {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .citations {
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+        }
+
+        .method-tag {
+            display: inline-block;
+            background: var(--bg-tertiary);
+            padding: 0.1rem 0.3rem;
+            font-size: 0.6rem;
+            margin-right: 0.25rem;
+            color: var(--accent-blue);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 1200px) {
+            .comparison-grid {
+                grid-template-columns: repeat(3, 1fr);
+                grid-template-rows: repeat(3, 1fr);
+            }
+            .dance-panel:nth-child(n+7) {
+                display: none;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .comparison-grid {
+                grid-template-columns: repeat(2, 1fr);
+                grid-template-rows: repeat(3, 1fr);
+            }
+            .dance-panel:nth-child(n+7) {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-left">
+            <h1>GMR <span>Side-by-Side</span></h1>
+            <p class="subtitle">Comparative Movement Analysis · 8 Dance Traditions</p>
+        </div>
+        <div class="framework-badge">GMR Framework v1.0</div>
+    </header>
+
+    <main>
+        <div class="comparison-grid" id="comparisonGrid">
+            <!-- Panels will be generated dynamically -->
+        </div>
+
+        <div class="controls-bar">
+            <div class="playback-controls">
+                <button id="playPauseBtn" title="Play/Pause">▶</button>
+                <button id="resetBtn" title="Reset">⟲</button>
+                <div class="timeline-container">
+                    <div class="timeline" id="timeline">
+                        <div class="timeline-progress" id="timelineProgress"></div>
+                    </div>
+                    <div class="time-display" id="timeDisplay">0:00 / 0:00</div>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Speed:</label>
+                <select id="speedSelect">
+                    <option value="0.25">0.25×</option>
+                    <option value="0.5">0.5×</option>
+                    <option value="1" selected>1×</option>
+                    <option value="1.5">1.5×</option>
+                    <option value="2">2×</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>Style:</label>
+                <div class="style-buttons" id="styleButtons">
+                    <button data-style="hologram" class="active">Hologram</button>
+                    <button data-style="wireframe">Wire</button>
+                    <button data-style="particles">Points</button>
+                    <button data-style="energy">Energy</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>View:</label>
+                <select id="viewSelect">
+                    <option value="front">Front</option>
+                    <option value="side">Side</option>
+                    <option value="top">Top</option>
+                    <option value="orbit" selected>Orbit</option>
+                </select>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="ownership">
+            GMR Framework & Visualizations © 2024–2025 <span class="author">Sinclair Ogaga Emoghene</span>, UT Austin
+        </div>
+        <div class="citations">
+            <span class="method-tag">QTC</span>Van de Weghe (2005)
+            <span class="method-tag">Kinesphere</span>Laban (1966)
+        </div>
+    </footer>
+
+    <script>
+    // ===========================================
+    // GMR SIDE-BY-SIDE COMPARISON
+    // 8 Synchronized Dance Panels
+    // Original Framework: Sinclair Ogaga Emoghene
+    // ===========================================
+
+    // Dance configurations - replace with actual data files when available
+    const DANCE_CONFIGS = [
+        {
+            id: 'ekombi',
+            title: 'Ekombi',
+            tradition: 'Efik/Ibibio',
+            region: 'Nigeria',
+            performer: 'Sinclair',
+            dataFile: 'ekombi.json',
+            color: 0xc9a227  // Gold
+        },
+        {
+            id: 'bata',
+            title: 'Bata',
+            tradition: 'Yoruba',
+            region: 'Nigeria',
+            performer: 'Sinclair',
+            dataFile: 'bata.json',
+            color: 0xe8e6e3  // White
+        },
+        {
+            id: 'adzogbo',
+            title: 'Adzogbo',
+            tradition: 'Ewe',
+            region: 'Ghana',
+            performer: 'Mustapha',
+            dataFile: 'adzogbo.json',
+            color: 0x4a90a4  // Blue
+        },
+        {
+            id: 'chango',
+            title: 'Changó',
+            tradition: 'Orisha',
+            region: 'Afro-Cuban',
+            performer: 'Nadia',
+            dataFile: 'chango.json',
+            color: 0xa63d40  // Red
+        },
+        {
+            id: 'kandyan',
+            title: 'Gajaga Vannama',
+            tradition: 'Kandyan',
+            region: 'Sri Lanka',
+            performer: 'Sudesh',
+            dataFile: 'kandyan.json',
+            color: 0x2d8a4e  // Green
+        },
+        {
+            id: 'slip_jig',
+            title: 'Slip Jig',
+            tradition: 'Festival',
+            region: 'Irish',
+            performer: 'Kate',
+            dataFile: 'slip_jig.json',
+            color: 0x9b59b6  // Purple
+        },
+        {
+            id: 'salsa',
+            title: 'Salsa',
+            tradition: 'Cuban/Puerto Rican',
+            region: 'Latin',
+            performer: 'Annie Laura',
+            dataFile: 'salsa.json',
+            color: 0xe67e22  // Orange
+        },
+        {
+            id: 'swange',
+            title: 'Swange',
+            tradition: 'Tiv',
+            region: 'Nigeria',
+            performer: 'Sinclair',
+            dataFile: 'swange.json',
+            color: 0x1abc9c  // Teal
+        }
+    ];
+
+    // Bone connections for skeleton rendering
+    const BONE_CONNECTIONS = [
+        ['pelvis', 'spine'], ['spine', 'chest'], ['chest', 'neck'], ['neck', 'head'],
+        ['chest', 'l_shoulder'], ['l_shoulder', 'l_elbow'], ['l_elbow', 'l_hand'],
+        ['chest', 'r_shoulder'], ['r_shoulder', 'r_elbow'], ['r_elbow', 'r_hand'],
+        ['pelvis', 'l_hip'], ['l_hip', 'l_knee'], ['l_knee', 'l_foot'],
+        ['pelvis', 'r_hip'], ['r_hip', 'r_knee'], ['r_knee', 'r_foot']
+    ];
+
+    // State
+    const panels = [];
+    let isPlaying = false;
+    let currentFrame = 0;
+    let maxFrames = 0;
+    let playbackSpeed = 1;
+    let lastFrameTime = 0;
+    let currentStyle = 'hologram';
+    let currentView = 'orbit';
+    let orbitAngle = 0;
+    let animationId = null;
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+        createPanels();
+        setupControls();
+        loadAllData();
+        animate();
+    });
+
+    function createPanels() {
+        const grid = document.getElementById('comparisonGrid');
+        
+        DANCE_CONFIGS.forEach((config, index) => {
+            const panel = document.createElement('div');
+            panel.className = 'dance-panel';
+            panel.id = `panel-${config.id}`;
+            
+            panel.innerHTML = `
+                <div class="panel-header">
+                    <div>
+                        <div class="panel-title">${config.title}</div>
+                        <div class="panel-tradition">${config.tradition}</div>
+                    </div>
+                    <div class="panel-region">${config.region}</div>
+                </div>
+                <div class="panel-canvas-container">
+                    <canvas class="panel-canvas" id="canvas-${config.id}"></canvas>
+                    <div class="panel-loading" id="loading-${config.id}">
+                        <div class="spinner"></div>
+                        <div>Loading...</div>
+                    </div>
+                    <div class="panel-overlay">
+                        <span class="panel-performer">${config.performer}</span>
+                        <span class="panel-frame" id="frame-${config.id}">F: 0</span>
+                    </div>
+                </div>
+            `;
+            
+            grid.appendChild(panel);
+            
+            // Initialize Three.js for this panel
+            initPanelThreeJS(config, index);
+        });
+    }
+
+    function initPanelThreeJS(config, index) {
+        const canvas = document.getElementById(`canvas-${config.id}`);
+        const container = canvas.parentElement;
+        
+        // Scene
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x141416);
+        
+        // Camera
+        const camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 100);
+        camera.position.set(0, 1.2, 2.5);
+        camera.lookAt(0, 0.8, 0);
+        
+        // Renderer
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+        scene.add(ambientLight);
+        
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(3, 5, 3);
+        scene.add(directionalLight);
+        
+        // Ground grid
+        const gridHelper = new THREE.GridHelper(2, 10, 0x333333, 0x222222);
+        gridHelper.position.y = 0;
+        scene.add(gridHelper);
+        
+        // Create skeleton
+        const skeleton = createSkeleton(scene, config.color);
+        
+        // Store panel data
+        panels.push({
+            config,
+            scene,
+            camera,
+            renderer,
+            skeleton,
+            data: null,
+            loaded: false
+        });
+    }
+
+    function createSkeleton(scene, color) {
+        const joints = {};
+        const bones = [];
+        
+        // Joint spheres
+        const jointGeometry = new THREE.SphereGeometry(0.02, 12, 12);
+        const jointMaterial = new THREE.MeshBasicMaterial({ color });
+        
+        const jointNames = [
+            'pelvis', 'spine', 'chest', 'neck', 'head',
+            'l_shoulder', 'l_elbow', 'l_hand',
+            'r_shoulder', 'r_elbow', 'r_hand',
+            'l_hip', 'l_knee', 'l_foot',
+            'r_hip', 'r_knee', 'r_foot'
+        ];
+        
+        jointNames.forEach(name => {
+            const mesh = new THREE.Mesh(jointGeometry, jointMaterial.clone());
+            mesh.visible = false;
+            scene.add(mesh);
+            joints[name] = mesh;
+        });
+        
+        // Bone lines
+        const boneMaterial = new THREE.LineBasicMaterial({ color, linewidth: 2 });
+        
+        BONE_CONNECTIONS.forEach(([from, to]) => {
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute([0,0,0,0,0,0], 3));
+            const line = new THREE.Line(geometry, boneMaterial.clone());
+            line.visible = false;
+            line.userData = { from, to };
+            scene.add(line);
+            bones.push(line);
+        });
+        
+        return { joints, bones, color };
+    }
+
+    async function loadAllData() {
+        // Try to load all dance data files
+        for (const panel of panels) {
+            try {
+                const response = await fetch(panel.config.dataFile);
+                if (response.ok) {
+                    panel.data = await response.json();
+                    panel.loaded = true;
+                    
+                    // Update max frames
+                    if (panel.data.frames && panel.data.frames.length > maxFrames) {
+                        maxFrames = panel.data.frames.length;
+                    }
+                } else {
+                    // Generate sample data if file not found
+                    panel.data = generateSampleData(panel.config);
+                    panel.loaded = true;
+                }
+            } catch (err) {
+                // Generate sample data on error
+                panel.data = generateSampleData(panel.config);
+                panel.loaded = true;
+            }
+            
+            // Hide loading indicator
+            const loadingEl = document.getElementById(`loading-${panel.config.id}`);
+            if (loadingEl) loadingEl.style.display = 'none';
+        }
+        
+        // Ensure we have a max frames value
+        if (maxFrames === 0) maxFrames = 300;
+    }
+
+    function generateSampleData(config) {
+        // Generate procedural motion data for demonstration
+        const frames = [];
+        const fps = 30;
+        const duration = 10; // 10 seconds
+        const totalFrames = fps * duration;
+        
+        // Different movement patterns based on dance style
+        const patterns = {
+            'ekombi': { armSpeed: 0.5, legSpeed: 0.3, amplitude: 0.15 },
+            'bata': { armSpeed: 0.8, legSpeed: 0.6, amplitude: 0.2 },
+            'adzogbo': { armSpeed: 0.7, legSpeed: 0.5, amplitude: 0.25 },
+            'chango': { armSpeed: 1.0, legSpeed: 0.8, amplitude: 0.3 },
+            'kandyan': { armSpeed: 0.4, legSpeed: 0.3, amplitude: 0.2 },
+            'slip_jig': { armSpeed: 0.3, legSpeed: 1.2, amplitude: 0.15 },
+            'salsa': { armSpeed: 0.6, legSpeed: 0.7, amplitude: 0.2 },
+            'swange': { armSpeed: 0.5, legSpeed: 0.4, amplitude: 0.18 }
+        };
+        
+        const pattern = patterns[config.id] || { armSpeed: 0.5, legSpeed: 0.5, amplitude: 0.2 };
+        
+        for (let i = 0; i < totalFrames; i++) {
+            const t = i / fps;
+            const phase = i / fps * Math.PI * 2;
+            
+            frames.push({
+                t,
+                joints: {
+                    pelvis: { x: 0.5, y: 0.35, z: 0.5 },
+                    spine: { x: 0.5, y: 0.45, z: 0.5 },
+                    chest: { x: 0.5, y: 0.55, z: 0.5 },
+                    neck: { x: 0.5, y: 0.62, z: 0.5 },
+                    head: { 
+                        x: 0.5 + Math.sin(phase * pattern.armSpeed * 0.5) * 0.02, 
+                        y: 0.7, 
+                        z: 0.5 
+                    },
+                    l_shoulder: { x: 0.42, y: 0.55, z: 0.5 },
+                    l_elbow: { 
+                        x: 0.35 + Math.sin(phase * pattern.armSpeed) * pattern.amplitude, 
+                        y: 0.48 + Math.cos(phase * pattern.armSpeed) * pattern.amplitude * 0.5, 
+                        z: 0.5 
+                    },
+                    l_hand: { 
+                        x: 0.28 + Math.sin(phase * pattern.armSpeed + 0.5) * pattern.amplitude * 1.2, 
+                        y: 0.42 + Math.cos(phase * pattern.armSpeed + 0.5) * pattern.amplitude, 
+                        z: 0.5 + Math.sin(phase * pattern.armSpeed) * 0.05
+                    },
+                    r_shoulder: { x: 0.58, y: 0.55, z: 0.5 },
+                    r_elbow: { 
+                        x: 0.65 + Math.sin(phase * pattern.armSpeed + Math.PI) * pattern.amplitude, 
+                        y: 0.48 + Math.cos(phase * pattern.armSpeed + Math.PI) * pattern.amplitude * 0.5, 
+                        z: 0.5 
+                    },
+                    r_hand: { 
+                        x: 0.72 + Math.sin(phase * pattern.armSpeed + Math.PI + 0.5) * pattern.amplitude * 1.2, 
+                        y: 0.42 + Math.cos(phase * pattern.armSpeed + Math.PI + 0.5) * pattern.amplitude, 
+                        z: 0.5 + Math.sin(phase * pattern.armSpeed + Math.PI) * 0.05
+                    },
+                    l_hip: { x: 0.45, y: 0.32, z: 0.5 },
+                    l_knee: { 
+                        x: 0.44 + Math.sin(phase * pattern.legSpeed) * 0.03, 
+                        y: 0.18 + Math.abs(Math.sin(phase * pattern.legSpeed)) * 0.05, 
+                        z: 0.5 + Math.cos(phase * pattern.legSpeed) * 0.05
+                    },
+                    l_foot: { 
+                        x: 0.43 + Math.sin(phase * pattern.legSpeed) * 0.05, 
+                        y: 0.03 + Math.abs(Math.sin(phase * pattern.legSpeed * 2)) * 0.03, 
+                        z: 0.5 + Math.cos(phase * pattern.legSpeed) * 0.08
+                    },
+                    r_hip: { x: 0.55, y: 0.32, z: 0.5 },
+                    r_knee: { 
+                        x: 0.56 + Math.sin(phase * pattern.legSpeed + Math.PI) * 0.03, 
+                        y: 0.18 + Math.abs(Math.sin(phase * pattern.legSpeed + Math.PI)) * 0.05, 
+                        z: 0.5 + Math.cos(phase * pattern.legSpeed + Math.PI) * 0.05
+                    },
+                    r_foot: { 
+                        x: 0.57 + Math.sin(phase * pattern.legSpeed + Math.PI) * 0.05, 
+                        y: 0.03 + Math.abs(Math.sin(phase * pattern.legSpeed * 2 + Math.PI)) * 0.03, 
+                        z: 0.5 + Math.cos(phase * pattern.legSpeed + Math.PI) * 0.08
+                    }
+                }
+            });
+        }
+        
+        return {
+            meta: {
+                title: config.title,
+                tradition: config.tradition,
+                region: config.region,
+                performer: config.performer,
+                fps: 30
+            },
+            skeleton: {
+                joints: Object.keys(frames[0].joints),
+                bones: BONE_CONNECTIONS
+            },
+            frames
+        };
+    }
+
+    function setupControls() {
+        // Play/Pause
+        document.getElementById('playPauseBtn').addEventListener('click', togglePlayback);
+        
+        // Reset
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            currentFrame = 0;
+            updateTimeDisplay();
+        });
+        
+        // Timeline
+        document.getElementById('timeline').addEventListener('click', (e) => {
+            const rect = e.target.getBoundingClientRect();
+            const percent = (e.clientX - rect.left) / rect.width;
+            currentFrame = Math.floor(percent * maxFrames);
+            updateTimeDisplay();
+        });
+        
+        // Speed
+        document.getElementById('speedSelect').addEventListener('change', (e) => {
+            playbackSpeed = parseFloat(e.target.value);
+        });
+        
+        // Style buttons
+        document.querySelectorAll('#styleButtons button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('#styleButtons button').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentStyle = btn.dataset.style;
+                updateAllStyles();
+            });
+        });
+        
+        // View
+        document.getElementById('viewSelect').addEventListener('change', (e) => {
+            currentView = e.target.value;
+            updateAllCameras();
+        });
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                togglePlayback();
+            }
+        });
+        
+        // Window resize
+        window.addEventListener('resize', handleResize);
+    }
+
+    function togglePlayback() {
+        isPlaying = !isPlaying;
+        document.getElementById('playPauseBtn').textContent = isPlaying ? '⏸' : '▶';
+        if (isPlaying) lastFrameTime = performance.now();
+    }
+
+    function animate() {
+        animationId = requestAnimationFrame(animate);
+        
+        const now = performance.now();
+        const fps = 30;
+        const frameInterval = 1000 / (fps * playbackSpeed);
+        
+        // Advance frame if playing
+        if (isPlaying && now - lastFrameTime >= frameInterval) {
+            currentFrame++;
+            if (currentFrame >= maxFrames) currentFrame = 0;
+            lastFrameTime = now;
+        }
+        
+        // Update orbit angle
+        if (currentView === 'orbit') {
+            orbitAngle += 0.005;
+        }
+        
+        // Update each panel
+        panels.forEach(panel => {
+            if (!panel.loaded || !panel.data) return;
+            
+            // Get frame data
+            const frameIndex = currentFrame % panel.data.frames.length;
+            const frame = panel.data.frames[frameIndex];
+            
+            // Update skeleton
+            updateSkeleton(panel.skeleton, frame, panel.scene);
+            
+            // Update camera
+            updateCamera(panel.camera);
+            
+            // Update frame counter
+            const frameEl = document.getElementById(`frame-${panel.config.id}`);
+            if (frameEl) frameEl.textContent = `F: ${frameIndex}`;
+            
+            // Render
+            panel.renderer.render(panel.scene, panel.camera);
+        });
+        
+        // Update global UI
+        updateTimeDisplay();
+    }
+
+    function updateSkeleton(skeleton, frame, scene) {
+        if (!frame || !frame.joints) return;
+        
+        // Update joints
+        Object.entries(frame.joints).forEach(([name, pos]) => {
+            const mesh = skeleton.joints[name];
+            if (mesh) {
+                mesh.position.set(
+                    (pos.x - 0.5) * 2,
+                    pos.y * 2,
+                    (pos.z - 0.5) * 2
+                );
+                mesh.visible = true;
+            }
+        });
+        
+        // Update bones
+        skeleton.bones.forEach(line => {
+            const { from, to } = line.userData;
+            const fromJoint = skeleton.joints[from];
+            const toJoint = skeleton.joints[to];
+            
+            if (fromJoint?.visible && toJoint?.visible) {
+                const positions = line.geometry.attributes.position.array;
+                positions[0] = fromJoint.position.x;
+                positions[1] = fromJoint.position.y;
+                positions[2] = fromJoint.position.z;
+                positions[3] = toJoint.position.x;
+                positions[4] = toJoint.position.y;
+                positions[5] = toJoint.position.z;
+                line.geometry.attributes.position.needsUpdate = true;
+                line.visible = currentStyle !== 'particles';
+            }
+        });
+    }
+
+    function updateCamera(camera) {
+        switch (currentView) {
+            case 'front':
+                camera.position.set(0, 1, 2.5);
+                camera.lookAt(0, 0.8, 0);
+                break;
+            case 'side':
+                camera.position.set(2.5, 1, 0);
+                camera.lookAt(0, 0.8, 0);
+                break;
+            case 'top':
+                camera.position.set(0, 3, 0.1);
+                camera.lookAt(0, 0.8, 0);
+                break;
+            case 'orbit':
+                camera.position.x = Math.sin(orbitAngle) * 2.5;
+                camera.position.z = Math.cos(orbitAngle) * 2.5;
+                camera.position.y = 1.2;
+                camera.lookAt(0, 0.8, 0);
+                break;
+        }
+    }
+
+    function updateAllCameras() {
+        panels.forEach(panel => updateCamera(panel.camera));
+    }
+
+    function updateAllStyles() {
+        const styleColors = {
+            hologram: null,  // Use original colors
+            wireframe: 0x4a90a4,
+            particles: null,
+            energy: 0x2d8a4e
+        };
+        
+        panels.forEach(panel => {
+            const color = styleColors[currentStyle] ?? panel.skeleton.color;
+            
+            Object.values(panel.skeleton.joints).forEach(mesh => {
+                mesh.material.color.setHex(color);
+                
+                // Adjust size for particles
+                if (currentStyle === 'particles') {
+                    mesh.scale.set(1.5, 1.5, 1.5);
+                } else {
+                    mesh.scale.set(1, 1, 1);
+                }
+            });
+            
+            panel.skeleton.bones.forEach(line => {
+                line.material.color.setHex(color);
+                line.visible = currentStyle !== 'particles';
+            });
+        });
+    }
+
+    function updateTimeDisplay() {
+        const fps = 30;
+        const currentTime = currentFrame / fps;
+        const totalTime = maxFrames / fps;
+        
+        document.getElementById('timeDisplay').textContent = 
+            `${formatTime(currentTime)} / ${formatTime(totalTime)}`;
+        
+        const progress = (currentFrame / maxFrames) * 100;
+        document.getElementById('timelineProgress').style.width = `${progress}%`;
+    }
+
+    function formatTime(seconds) {
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    function handleResize() {
+        panels.forEach(panel => {
+            const container = document.getElementById(`canvas-${panel.config.id}`).parentElement;
+            panel.camera.aspect = container.clientWidth / container.clientHeight;
+            panel.camera.updateProjectionMatrix();
+            panel.renderer.setSize(container.clientWidth, container.clientHeight);
+        });
+    }
+    </script>
+</body>
+</html>
